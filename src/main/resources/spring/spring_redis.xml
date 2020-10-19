@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:cache="http://www.springframework.org/schema/cache"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+	http://www.springframework.org/schema/beans/spring-beans.xsd
+	http://www.springframework.org/schema/cache
+	http://www.springframework.org/schema/cache/spring-cache.xsd">
+
+	<!-- 注册 cache 缓存 -->
+ 	<cache:annotation-driven />
+
+	<!-- 配置 JedisPoolConfig 实例 -->
+	<bean id="poolConfig" class="redis.clients.jedis.JedisPoolConfig">
+		<property name="maxIdle" value="300" />
+		<property name="maxTotal" value="600" />
+		<property name="maxWaitMillis" value="1000" />
+		<property name="testOnBorrow" value="true" />
+	</bean>
+
+	<!-- 配置jedis连接工厂对象 -->
+	<bean id="jedisConnectionFactory" class="org.springframework.data.redis.connection.jedis.JedisConnectionFactory">
+		<!--连接redis服务端的所在服务器的ip地址-->
+		<property name="hostName" value="192.168.130.239" />
+		<!--redis端口号-->
+		<property name="port" value="6379" />
+		<!-- 注入poolConfig对象 -->
+		<property name="poolConfig" ref="poolConfig" />
+	</bean>
+	
+	<!-- 配置 RedisTemplate -->
+	 <bean id="redisTemplate" class="org.springframework.data.redis.core.RedisTemplate">
+	 	<!-- 注入jedis连接工厂对象 -->
+	 	<property name="connectionFactory" ref="jedisConnectionFactory"/>
+	 	<!--对key进行序列化-->	
+		<property name="keySerializer">
+		 <bean class="org.springframework.data.redis.serializer.StringRedisSerializer"/>
+	 	</property>
+	 	<!--对value进行序列化-->	
+		 <property name="valueSerializer">
+		 	<bean class="org.springframework.data.redis.serializer.JdkSerializationRedisSerializer"/>
+		 </property>
+	 </bean>
+	 
+	 <!-- 配置 RedisCacheManager:提供缓存功能 -->
+	 <bean id="cacheManager" class="org.springframework.data.redis.cache.RedisCacheManager">
+	 	 <!-- 注入redisTemplate -->
+		 <constructor-arg name="redisOperations" ref="redisTemplate"/>
+		 <!-- 设置默认的有效期 -->
+		 <property name="defaultExpiration" value="3000"/>
+	</bean>
+
+</beans>	

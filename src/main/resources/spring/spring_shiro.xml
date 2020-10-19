@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:aop="http://www.springframework.org/schema/aop"
+       xmlns:tx="http://www.springframework.org/schema/tx"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/context
+        http://www.springframework.org/schema/context/spring-context.xsd
+        http://www.springframework.org/schema/aop
+        http://www.springframework.org/schema/aop/spring-aop.xsd
+        http://www.springframework.org/schema/tx
+        http://www.springframework.org/schema/tx/spring-tx.xsd">
+
+    <!--自定义的bean-->
+    <bean id="myRealm" class="com.offcn.shiro.MyRealm">
+        <property name="employeeService" ref="employeeServiceImpl"/>
+        <property name="roleService" ref="roleServiceImpl"/>
+        <property name="sourcesService" ref="sourcesServiceImpl"/>
+    </bean>
+
+    <!--创建调度shiro内部组件的对象-->
+    <bean id="securityManager" class="org.apache.shiro.web.mgt.DefaultWebSecurityManager">
+        <!--注入自定义的realm对象-->
+        <property name="realm" ref="myRealm"/>
+    </bean>
+
+    <!--shiro过滤-->
+    <bean id="shiroFilter" class="org.apache.shiro.spring.web.ShiroFilterFactoryBean">
+        <!--注入securityManager对象-->
+        <property name="securityManager" ref="securityManager"/>
+        <!--设置登录的url-->
+        <property name="loginUrl" value="/login.jsp"/>
+        <!--没有被授权所跳转的页面-->
+        <property name="unauthorizedUrl" value="/unauthorized.html"/>
+        <!--过滤请求url-->
+        <property name="filterChainDefinitions">
+            <value>
+                <!--等号前面代表请求url； anon:任意的用户：所有人都可以访问/login;
+                 authc:必须是认证之后的用户：只有认证之后的用户才能操作的urlss
+                -->
+                /=anon
+                /employee/login=anon
+                /login.jsp=anon
+                /index.jsp=authc
+                /system/*=authc
+                /project/**=roles[项目经理]
+               <!-- /system/**=roles[管理员]
+                /duibiao/*=perms[对标管理]-->
+            </value>
+        </property>
+    </bean>
+    <!-- 保证实现了Shiro内部lifecycle函数的bean执行 -->
+    <bean id="lifecycleBeanPostProcessor" class="org.apache.shiro.spring.LifecycleBeanPostProcessor"/>
+    <!-- 开启Shiro注解 -->
+    <bean class="org.springframework.aop.framework.autoproxy.DefaultAdvisorAutoProxyCreator"
+          depends-on="lifecycleBeanPostProcessor"/>
+    <bean class="org.apache.shiro.spring.security.interceptor.AuthorizationAttributeSourceAdvisor">
+        <property name="securityManager" ref="securityManager"/>
+    </bean>
+
+</beans>

@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+    <bean id="mailSender" class="org.springframework.mail.javamail.JavaMailSenderImpl">
+        <!--发邮件的邮箱地址所对应的虚拟主机-->
+        <property name="host" value="smtp.qq.com" />
+        <!--发件人的邮箱地址-->
+        <property name="username" value="1462932319@qq.com" />
+        <!--设置中获取到的密钥字符串(授权码)hbdyvcddahkxieeh-->
+        <property name="password" value="dzvzpgqsklthjbac" />
+        <property name="defaultEncoding" value="UTF-8"></property>
+        <property name="javaMailProperties">
+            <props>
+                <!--授权认证-->
+                <prop key="mail.smtp.auth">true</prop>
+                <!--超时设置-->
+                <prop key="mail.smtp.timeout">25000</prop>
+                <!--邮件所在的服务器的端口-->
+                <prop key="mail.smtp.port">25</prop>
+            </props>
+        </property>
+    </bean>
+
+    <bean id="mailUtil" class="com.offcn.util.MailUtil">
+        <property name="javaMailSender" ref="mailSender"/>
+    </bean>
+</beans>
